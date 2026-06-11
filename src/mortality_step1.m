@@ -3,16 +3,12 @@ function lambda = mortality_step1(grids, params)
 %
 %   lambda = mortality_step1(grids, params)
 %
-% Will return lambda (Nh x 1): the mortality hazard at each age.
-% Step 1 specification: lambda(h) = lambda_bar for all h.
-%
-% operator_build.m places -lambda(h) on the operator diagonal (death
-% outflow) and pairs it with the inhomogeneous bequest term
-% lambda(h) * W(a) on the HJB right-hand side; kfe_solve.m uses the same
-% lambda for the mortality outflow balanced by the entry inflow at h = h0.
-%
-% Stub (session 1) -- no implementation yet.
+% Returns lambda (Nh x 1): the mortality hazard at each age.
+% Step 1 specification: lambda(h) = lambda_bar for all h. operator_build.m
+% puts -lambda on the generator diagonal and pairs it with the bequest term
+% lambda * W(a) on the HJB right-hand side; the same rates feed the
+% death -> entry inheritance kernel in kfe_solve.m.
 
-error('mortality_step1: not implemented yet (scaffold stub)');
+lambda = params.lambda_bar * ones(grids.Nh, 1);
 
 end

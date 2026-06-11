@@ -14,6 +14,10 @@ function grids = grids_build(params)
 %   .dy, .dh       scalar grid steps
 %   .aa, .yy, .hh  (N x 1) flattened state vectors, column-major over the
 %                  (a, y, h) tensor: a varies fastest, h slowest
+%   .ia, .iy, .ih  (N x 1) grid indices of each flattened state
+%   .wa  (Na x 1)  trapezoid integration weights on the nonuniform a grid
+%   .wx  (N x 1)   state-space measure weights wa * dy * dh, so that
+%                  point masses m = g .* wx integrate the density g
 %   .Na, .Ny, .Nh, .N  dimensions
 %
 % Grid construction only -- sparse operators are assembled in
@@ -47,5 +51,17 @@ grids.N  = grids.Na * grids.Ny * grids.Nh;
 grids.aa = A(:);
 grids.yy = Y(:);
 grids.hh = H(:);
+
+[IA, IY, IH] = ndgrid(1:grids.Na, 1:grids.Ny, 1:grids.Nh);
+grids.ia = IA(:);
+grids.iy = IY(:);
+grids.ih = IH(:);
+
+% Integration weights: trapezoid in a (grid is nonuniform), rectangle in y, h
+grids.wa = zeros(grids.Na, 1);
+grids.wa(1)       = grids.da(1) / 2;
+grids.wa(2:end-1) = (grids.da(1:end-1) + grids.da(2:end)) / 2;
+grids.wa(end)     = grids.da(end) / 2;
+grids.wx = grids.wa(grids.ia) * grids.dy * grids.dh;
 
 end

@@ -3,14 +3,10 @@ function r = returns_step1(grids, params)
 %
 %   r = returns_step1(grids, params)
 %
-% Will return r (N x 1): the return rate at every flattened state point.
-% Step 1 specification: r(a) = r0 everywhere.
-%
-% operator_build.m uses r in the wealth drift
-%   adot = r .* a + w * exp(y) .* (h < hR) - c.
-%
-% Stub (session 1) -- no implementation yet.
+% Returns r (N x 1): the return rate at every flattened state point.
+% Step 1 specification: r(a) = r0 everywhere. operator_build.m uses r in
+% the wealth drift adot = r .* a + income - c.
 
-error('returns_step1: not implemented yet (scaffold stub)');
+r = params.r0 * ones(grids.N, 1);
 
 end

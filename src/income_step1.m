@@ -3,17 +3,15 @@ function [drift_y, var_y] = income_step1(grids, params)
 %
 %   [drift_y, var_y] = income_step1(grids, params)
 %
-% Will return, on the y grid (Ny x 1):
+% Returns, on the y grid (Ny x 1):
 %   drift_y  drift of y:     -theta_y * (y - mu_y)
 %   var_y    variance of y:   sigma_y^2 (constant vector)
 %
-% operator_build.m uses these coefficients to assemble the upwinded
-% diffusion generator L_y as a sparse Kronecker block in the y dimension
-% (same scheme as Moll's huggett_diffusion_partialeq.m, but with the state
-% kept in logs so the OU coefficients enter directly, no Ito correction).
-%
-% Stub (session 1) -- no implementation yet.
+% The state is log income, so the OU coefficients enter directly (no Ito
+% correction); operator_build.m assembles the upwinded diffusion generator
+% L_y from these (same scheme as Moll's huggett_diffusion_partialeq.m).
 
-error('income_step1: not implemented yet (scaffold stub)');
+drift_y = -params.theta_y * (grids.y - params.mu_y);
+var_y   = params.sigma_y^2 * ones(grids.Ny, 1);
 
 end

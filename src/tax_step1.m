@@ -3,18 +3,14 @@ function T = tax_step1(b, params)
 %
 %   T = tax_step1(b, params)
 %
-% Will return T, the estate tax due on bequest b (vectorised, same size
-% as b):
-%   T_e(b) = tau0 * max(b - F, 0).
+% Returns T, the estate tax due on bequest b (vectorised, same size as b):
+%   T_e(b) = tau0 * max(b - F, 0),   b and F in model units.
 %
 % Unlike the other block modules this maps bequest values, not the state
-% grid: kfe_solve.m's inheritance kernel calls it to compute heirs'
-% initial wealth max(b - T_e(b), 0) + G, and equilibrium.m calls it for
-% revenue integration. Step 1 rates are validation placeholders, not the
-% ErbStG schedule (that is tax_step2.m).
-%
-% Stub (session 1) -- no implementation yet.
+% grid: kfe_solve.m's inheritance kernel calls it to compute heirs' initial
+% wealth max(b - T_e(b), 0) + G, and the revenue integration calls it on
+% the wealth grid. Step 1 rates are validation placeholders, not ErbStG.
 
-error('tax_step1: not implemented yet (scaffold stub)');
+T = params.tau0 * max(b - params.F, 0);
 
 end
