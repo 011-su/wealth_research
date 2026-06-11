@@ -50,6 +50,10 @@ SparseEcon (both in `external/`, read-only, git-ignored).
   sd; flattening is column-major over (a, y, h), a fastest — Moll convention.
 - Headless runs: `/Applications/MATLAB_R2026a.app/bin/matlab -batch "..."`
   from the project root (runs `startup.m` automatically when started there).
+- SparseEcon use cases write run outputs into their own *tracked* `output/`
+  directories, so running one dirties the clone. After a smoke run, restore
+  with `git checkout -- .` inside `external/SparseEcon` (evidence copies live
+  in `external/smoke_test_outputs/`). Never edit anything under `external/`.
 
 ## Closest reference script — shortlist and pick
 
