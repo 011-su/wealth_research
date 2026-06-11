@@ -2,8 +2,8 @@
 
 MATLAB implementation of a continuous-time heterogeneous-agent life-cycle
 model with bequests, for the DIW preliminary paper. Specification documents:
-`preliminary_paper_outline.md` and `implementation_appendix.md` (currently in
-`~/Downloads/files(8)/`; the appendix is the implementation contract).
+`docs/preliminary_paper_outline.md` and `docs/implementation_appendix.md`
+(the appendix is the implementation contract).
 
 ## Setup
 

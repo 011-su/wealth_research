@@ -1,10 +1,10 @@
 # CLAUDE.md — WP0 preliminary paper implementation
 
 Continuous-time HA life-cycle model with bequests, German estate-tax /
-capital-grant experiments. Specification: `implementation_appendix.md` +
-`preliminary_paper_outline.md` (the appendix is the contract; both currently
-in `~/Downloads/files(8)/`). MATLAB, building on Moll reference codes and
-SparseEcon (both in `external/`, read-only, git-ignored).
+capital-grant experiments. Specification: `docs/implementation_appendix.md` +
+`docs/preliminary_paper_outline.md` (the appendix is the contract). MATLAB,
+building on Moll reference codes and SparseEcon (both in `external/`,
+read-only, git-ignored).
 
 ## State after session 1 (2026-06-11)
 
@@ -27,6 +27,37 @@ SparseEcon (both in `external/`, read-only, git-ignored).
   five Step 1 blocks (`income/returns/mortality/bequest/tax_step1.m`, header +
   signature + `error(...)`). Verified: `grids_build(params_default())` gives
   N = 172,200 = 300 × 7 × 82, matching §3.1.
+
+## State after session 2 (2026-06-11, afternoon)
+
+- **Specs moved into the repo**: `docs/implementation_appendix.md`,
+  `docs/preliminary_paper_outline.md`.
+- **All five Step 1 block modules implemented** (income/returns/mortality/
+  bequest/tax `_step1.m`) plus a units layer in `params_default.m`
+  (`eur_per_unit`, see discrepancy 8) and pension floor (discrepancy 9).
+- **`operator_build.m`**: dispatcher on toggles; static Kronecker blocks
+  `Ay` (OU upwind diffusion, reflecting), `Ah` (unit age drift, forward
+  upwind; aging out of h_max = certain death with bequest), mortality diag,
+  bequest RHS, stationary `p_y` for heirs' entry income. Decomposed so the
+  future `transition_solve.m` reuses everything; only the policy-dependent
+  wealth-drift block is rebuilt per HJB iteration (in `hjb_solve.m`).
+- **`hjb_solve.m`**: implicit upwind scheme, nonuniform a grid,
+  state-constraint boundaries, death-with-bequest inhomogeneous term.
+  Converges in ~10 iterations on the full 3-D Step 1 model.
+- **`kfe_solve.m`**: stationary KFE in point masses m = g .* wx (the upwind
+  generator is an exact rate matrix, so conservation is exact); inheritance
+  kernel R recycles mortality + h_max outflows into entry at h0 with
+  post-tax wealth `max(b - T(b), 0) + G` (linear interpolation onto the a
+  grid) and y′ ~ p_y. Solve: fix-one-row on (A′ + R), normalise.
+- **`equilibrium.m`**: wrapper grids→ops→HJB→KFE + revenue flow. No tau
+  bisection yet.
+- **Tests passing** (run via `matlab -batch "startup; test_..."`):
+  - `tests/test_aiyagari_limit.m` — age collapsed (Nh = 1), no mortality:
+    matches an inline log-OU adaptation of `huggett_diffusion_partialeq.m`
+    on identical grids to machine precision (V err ~6e-16, mass err ~4e-15).
+  - `tests/test_mass_conservation.m` — full 3-D Step 1 solve (Na = 100):
+    exact generator conservation, residual, m ≥ 0, entry inflow = death
+    outflow, hump-shaped wealth-by-age profile.
 
 ## Conventions adopted
 
@@ -82,15 +113,35 @@ solves a finite-horizon problem, not a stationary distribution; (3) is the
 right economics but the wrong numerical stack — its sparse-grid library
 diverges from the appendix's dense Kronecker prescription.
 
-## Next session (development order §7, item 2–3)
+## Next session (development order §7, item 5–7)
 
-1. Run `huggett_diffusion_partialeq.m` logic through the new scaffold
-   (params/grids) unchanged — confirm nothing broken (§7 item 2).
-2. Start `operator_build.m`: implement `income_step1.m`, `returns_step1.m`,
-   build the (a, y) operator on the dense grid, reproduce the Huggett
-   stationary result as a regression test.
-3. Then add the age dimension (§7 item 3): forward upwind on h, no-mortality
-   no-bequest limit, check wealth-by-age profile.
+1. Status-quo equilibrium at full resolution (Na = 300): run
+   `equilibrium(params_default())`, plot wealth density and wealth-by-age
+   profile, first sanity-check of levels (§7 item 5). Check runtime; if the
+   full-grid sparse solve is slow, consider reordering states (a slowest)
+   to cut bandwidth before optimising anything else.
+2. `moments.m` (top shares, Gini, bequest-to-wealth ratio) — needed for
+   calibration targets.
+3. `calibrate_step1.m`: bisection on theta_b to match the target
+   bequest-to-wealth ratio (§7 item 6).
+4. Then the revenue-balance outer loop and `run_exp1_grunderbe.m` (§7
+   item 7).
+5. Remaining validation: `test_lifecycle_limit.m` (lambda→0, theta_b→0
+   against a deterministic benchmark), no-income-heterogeneity limit.
+
+## Design note: steady states now, transitions later
+
+The dense-Kronecker (Moll) stack was chosen over SparseEcon's adaptive
+sparse grids and this does NOT change with transition dynamics in view:
+in PE with no time-varying prices, a transition is one backward HJB sweep +
+one forward KFE sweep over the same operator (appendix §3.5), i.e. ~2 T
+sparse solves of the system we already factor once per HJB iteration —
+entirely feasible at N ≈ 1.7e5. Sparse adaptive grids pay off in higher
+dimensions or GE fixed points, neither of which we have. What transitions
+DO require is already in place: `operator_build` keeps the static blocks
+(Ay, Ah, mortality) separate from the policy-dependent wealth-drift block,
+and `kfe_solve` exposes the inheritance kernel R, so the forward sweep can
+apply (A_t′ + R) at every time step without reassembly.
 
 ## Discrepancies vs. appendix
 
@@ -126,3 +177,28 @@ diverges from the appendix's dense Kronecker prescription.
    `use_cases/05_transition_dynamics` — exists, fine.
 7. **MATLAB is on a trial license** (R2026a, license "DEMO") — fine for now,
    but worth resolving before the ~100-solve Step 2 calibration runs.
+8. **§8 units are internally inconsistent**: `w = 1.0` (normalisation) but
+   `a_max`, `F`, `G` in EUR. With w = 1 nobody ever reaches a 4e5 exemption.
+   Resolved via explicit `params.eur_per_unit = 4.5e4` (≈ German mean annual
+   gross earnings, Step 1 placeholder): EUR-denominated parameters are
+   converted to model units in `params_default.m` (`*_eur` fields are the
+   inputs, model-unit fields derived). Keeps w = 1 per §8 and V, c well
+   scaled. Calibrate `eur_per_unit` properly in Step 2.
+9. **Appendix budget has zero income in retirement** (`w e^y 1{h<hR}` only),
+   which gives c = 0 and u = -Inf for retirees at the constraint — the HJB
+   is ill-posed without a floor. Added `params.pension_eur = 1.35e4` (~30%
+   of mean earnings, Grundsicherung-like, Step 1 placeholder). Step 2 should
+   replace this with a proper German pension (point system / OECD data).
+10. **Heirs' income state at entry is unspecified** (§1.2 only fixes initial
+    wealth). Implemented: y′ drawn from the stationary distribution of the
+    discretised income process, independent of the parent. Alternative
+    (intergenerational y-persistence) would need a copula parameter — Step 2
+    decision.
+11. **Warm-glow W(a) = θ_b a^(1-γ)/(1-γ) is -Inf at a = 0** for γ ≥ 1.
+    Added `params.bequest_shift_eur = 2e4` inside the power (regularisation,
+    same role as De Nardi's θ₂). Affects θ_b calibration only marginally.
+12. **Terminal age**: aging out at h_max is implemented as certain death
+    with bequest (the aging outflow at the last age node feeds the
+    inheritance kernel, value side gets W(a)). The appendix says only
+    "h_max acts as a hard upper bound"; this is the consistent reading
+    (mass must go somewhere), but flagging the choice.
