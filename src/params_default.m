@@ -53,6 +53,12 @@ params.hG    = 18;           % grant age (Block J: single lump sum at entry)
 
 %% Bequest motive, Step 1 (Block D.1): W(a) = theta_b * (a + shift)^(1-gamma)/(1-gamma)
 params.theta_b = 1.0;        % warm-glow strength; PLACEHOLDER until calibrate_step1.m
+params.target_bwr = 0.024;   % calibration target: bequest flow / wealth per
+                             % year. PLACEHOLDER: with the constant Step 1
+                             % hazard the model caps bwr near lambda_bar
+                             % (~0.020-0.026), so the German ~0.03 is only
+                             % attainable with age-rising mortality
+                             % (Step 2.C) -- see TODO.md
 params.bequest_shift_eur = 2e4;  % small shift: W(0) finite for gamma >= 1
                              % (numerical regularisation, cf. De Nardi theta_2)
 
@@ -74,12 +80,8 @@ params.Delta_hjb = 1000;     % implicit time step in HJB iteration
 params.tol       = 1e-6;     % HJB convergence tolerance
 params.maxit_hjb = 100;      % expected to converge within ~100 iterations
 
-%% Derived model-unit quantities (do not set directly)
-params.a_max         = params.a_max_eur         / params.eur_per_unit;
-params.F             = params.F_eur             / params.eur_per_unit;
-params.G             = params.G_eur             / params.eur_per_unit;
-params.pension       = params.pension_eur       / params.eur_per_unit;
-params.bequest_shift = params.bequest_shift_eur / params.eur_per_unit;
-params.Nh            = params.h_max - params.h0 + 1;  % informational; grids_build derives from h0/h_max
+%% Derived model-unit quantities (recompute via params_derive after
+%% overriding any *_eur input)
+params = params_derive(params);
 
 end

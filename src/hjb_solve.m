@@ -1,7 +1,8 @@
-function [V, c, adrift, A, n_iter] = hjb_solve(grids, ops, params)
+function [V, c, adrift, A, n_iter] = hjb_solve(grids, ops, params, V0)
 % HJB_SOLVE  Implicit upwind finite-difference HJB solver (appendix 3.2).
 %
 %   [V, c, adrift, A, n_iter] = hjb_solve(grids, ops, params)
+%   [V, c, adrift, A, n_iter] = hjb_solve(grids, ops, params, V0)  % warm start
 %
 % Achdou et al. (2022) scheme, following Moll's huggett_diffusion_partialeq.m:
 % upwind the wealth drift with the state-constraint boundary conditions
@@ -34,7 +35,11 @@ up = grids.ia < Na;    % states with a forward neighbour
 dn = grids.ia > 1;     % states with a backward neighbour
 idx = (1:N)';
 
-V = u(res0) / params.rho;   % initial guess: value of consuming res0 forever
+if nargin < 4 || isempty(V0)
+    V = u(res0) / params.rho;   % default guess: value of consuming res0 forever
+else
+    V = V0;                     % warm start (e.g. nearby parameter point)
+end
 
 for n = 1:params.maxit_hjb
     % One-sided differences with state-constraint boundary conditions
