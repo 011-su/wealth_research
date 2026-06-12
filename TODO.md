@@ -86,3 +86,11 @@ to the "Discrepancies vs. appendix" section in `CLAUDE.md`.
   operator blocks; design already supports it — see CLAUDE.md design note).
 - [ ] **MATLAB trial license** [7]: resolve before Step 2 calibration
   (~100 solves) or long transition runs.
+- [ ] **Investigate MATLAB fatal crash of 2026-06-12 17:37**
+  (`~/matlab_crash_dump.27552-1`: trace trap in the interpreter thread
+  during a forced shutdown, mid-batch-run). Suspects: memory pressure
+  (long-running desktop MATLAB + batch solves needing several GB for the
+  sparse LU at N = 1.7e5) or trial-license session limits. The same run
+  had slowed ~3x before crashing, consistent with swapping. Mitigation
+  meanwhile: close the desktop MATLAB during long batch runs; keep runs
+  detached and resumable.
