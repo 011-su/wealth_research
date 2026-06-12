@@ -80,6 +80,21 @@ to the "Discrepancies vs. appendix" section in `CLAUDE.md`.
 
 ## Experiments / infrastructure
 
+- [ ] **DECIDE: revenue-balance convention for the experiments.** The
+  appendix §3.4 balances *total* revenue (∫T λ g = G·N_entry). Because
+  status-quo revenue is a pure leak out of the household sector (no
+  spending/rebate in the model), this makes exp1 a tax *cut* plus full
+  recycling (tau* = 0.139 < 0.20): aggregate wealth rises (~406k→428k
+  EUR mean) and the experiment mixes redistribution with "stop draining
+  estate-tax revenue". For a pure-redistribution reading, switch to the
+  *incremental* condition Rev(tau*) = Rev_status_quo + G·N_entry (leak
+  identical across scenarios, tau* ≈ 0.35–0.40). Even then the aggregate
+  stock will rise somewhat via the timing channel (transfers to the young
+  are held longer) — that part is the economics exp3 is meant to isolate,
+  and §5.3.3's wealth-vs-cumulative-transfers check should confirm it on
+  the transition path. Affects exp1–exp4 comparability; decide before
+  quoting results.
+
 - [ ] Revenue-balance outer loop (bisection on tau) in `equilibrium.m` or
   experiment scripts (§3.4); then `run_exp1_grunderbe.m` … exp4.
 - [ ] `transition_solve.m` (backward HJB + forward KFE over the cached
