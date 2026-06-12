@@ -83,6 +83,11 @@ read-only, git-ignored).
 - Workflow notes: never pipe long MATLAB batch runs through `tail` (output
   is lost if the process dies); announce runtime estimates for anything
   >10 min (one stationary solve: ~40-60 s at Na = 100, ~2 min at Na = 300).
+  Harness background tasks get killed at session handovers (two MATLAB
+  runs died this way mid-run): launch anything >5 min detached instead —
+  `nohup matlab -batch "..." > results/<log>.txt 2>&1 & disown` — and
+  watch the log file. Design long loops so they can resume from partial
+  output (e.g. `run_exp1_grunderbe(params, tau_lo, tau_hi)`).
 
 ## Conventions adopted
 

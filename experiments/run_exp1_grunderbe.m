@@ -1,8 +1,9 @@
-function [sol, mom, tau_star] = run_exp1_grunderbe(params)
+function [sol, mom, tau_star] = run_exp1_grunderbe(params, tau_lo, tau_hi)
 % RUN_EXP1_GRUNDERBE  Experiment 1: Grunderbe with revenue balance (§3.4, outline 6.1).
 %
 %   [sol, mom, tau_star] = run_exp1_grunderbe()        % default params
 %   [sol, mom, tau_star] = run_exp1_grunderbe(params)
+%   [sol, mom, tau_star] = run_exp1_grunderbe(params, tau_lo, tau_hi)  % resume bracket
 %
 % G = 20,000 EUR at entry (h = 18), funded by bisecting on the Step 1 flat
 % estate-tax rate tau0 until revenue = G * N_entry in the NEW stationary
@@ -10,14 +11,15 @@ function [sol, mom, tau_star] = run_exp1_grunderbe(params)
 % is a full HJB+KFE solve. Saves results and comparison figures vs. the
 % status quo (if results/step1/status_quo.mat exists) to results/step1/.
 
-if nargin < 1, params = params_default(); end
+if nargin < 1 || isempty(params), params = params_default(); end
+if nargin < 2, tau_lo = 0; end
+if nargin < 3, tau_hi = 0.6; end
 params.G_eur = 2e4;
 params = params_derive(params);
 
 out_dir = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'results', 'step1');
 if ~exist(out_dir, 'dir'), mkdir(out_dir); end
 
-tau_lo = 0; tau_hi = 0.6;
 sol = []; mom = []; tau_star = NaN;
 t0 = tic;
 V_warm = [];
