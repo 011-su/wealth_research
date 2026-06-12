@@ -20,10 +20,12 @@ if ~exist(out_dir, 'dir'), mkdir(out_dir); end
 tau_lo = 0; tau_hi = 0.6;
 sol = []; mom = []; tau_star = NaN;
 t0 = tic;
+V_warm = [];
 for outer = 1:50
     tau_mid = 0.5 * (tau_lo + tau_hi);
     params.tau0 = tau_mid;
-    sol = equilibrium(params);
+    sol = equilibrium(params, V_warm);
+    V_warm = sol.V;
     mom = moments(sol, params);
     bill   = params.G * mom.entry_flow;
     budget = mom.revenue - bill;

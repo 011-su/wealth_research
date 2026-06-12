@@ -59,6 +59,31 @@ read-only, git-ignored).
     exact generator conservation, residual, m ≥ 0, entry inflow = death
     outflow, hump-shaped wealth-by-age profile.
 
+## State after session 3 (2026-06-12)
+
+- **Status-quo equilibrium at full resolution** (Na = 300, N = 172,200):
+  ~110 s cold / ~60 s warm, HJB 22 iterations, KFE residual ~6e-17. No
+  reordering needed. Figures + `status_quo.mat` in `results/step1/`.
+  Levels (theta_b = 1 placeholder): mean wealth 406 k EUR, Gini 0.55,
+  top-1% 6.9% — top tail far too thin vs. data, as expected for a
+  one-asset single-rate model (see TODO "Model fit").
+- **`moments.m`** (top shares via threshold-atom splitting, Gini from the
+  Lorenz curve, bwr, revenue, profiles) and **`run_status_quo.m`**.
+- **`calibrate_step1.m`**: Illinois root-finder on log10(theta_b) with HJB
+  warm starts (`hjb_solve`/`equilibrium` take optional V0) — 3 evals
+  instead of ~15 bisections. Converges, BUT the BWR calibration is
+  degenerate under constant mortality (see TODO) — theta_b stays at the
+  1.0 placeholder; pull Step 2.C forward before calibrating for real.
+- **`params_derive.m`**: recomputes model-unit fields from `*_eur` inputs;
+  call it after overriding any EUR field in an experiment script.
+- **`run_exp1_grunderbe.m`**: revenue-balance bisection on tau0 (G = 20k
+  EUR at entry, tolerance 0.1% of the grant bill), warm-started, with
+  comparison figures vs. the status quo.
+- **`tests/run_tests.m`** runs the whole suite in one MATLAB session.
+- Workflow notes: never pipe long MATLAB batch runs through `tail` (output
+  is lost if the process dies); announce runtime estimates for anything
+  >10 min (one stationary solve: ~40-60 s at Na = 100, ~2 min at Na = 300).
+
 ## Conventions adopted
 
 - `external/` is git-ignored (Moll's scripts are loose files, not a repo, so

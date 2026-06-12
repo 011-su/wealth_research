@@ -31,14 +31,19 @@ to the "Discrepancies vs. appendix" section in `CLAUDE.md`.
 - [ ] **theta_b target.** `target_bwr` must be pinned down from
   Erbschaftsteuerstatistik + Tiefensee–Grabka (2017) upscaling before
   Step 1 results are quotable (~3% per year).
-- [ ] **theta_b is weakly identified under Step 1 mortality.** With the
-  constant hazard, decedents sample the population almost uniformly, so
-  bwr ≈ lambda_bar regardless of theta_b (measured range: 0.0204–0.0255
-  for theta_b in 1e-3…1e3). The Step 1 target is therefore set to a
-  feasible 0.024 placeholder. Real identification needs age-rising
-  mortality — **consider pulling Step 2.C (Destatis Sterbetafel spline,
-  §7 item 10, the smallest Step 2 change) forward** so the bequest motive
-  is disciplined by data before the policy experiments.
+- [ ] **theta_b is weakly identified under Step 1 mortality — and the BWR
+  calibration is degenerate.** With the constant hazard, decedents sample
+  the population almost uniformly, so bwr ≈ lambda_bar regardless of
+  theta_b (measured: 0.0204–0.0255 for theta_b in 1e-3…1e3). Hitting even
+  a feasible target (0.024) forces theta_b ≈ 327, which is pathological:
+  mean wealth jumps to 1.45 M EUR and the Gini collapses to 0.25 (data:
+  ~0.3–0.4 M EUR and ~0.77). Decision 2026-06-12: keep theta_b = 1.0
+  placeholder as the default for all Step 1 machinery validation;
+  `calibrate_step1.m` works and is tested, but a meaningful calibration
+  **requires pulling Step 2.C forward (Destatis Sterbetafel spline, §7
+  item 10, the smallest Step 2 change)** so that decedents are old and
+  wealth-rich and the BWR becomes informative about the bequest motive.
+  Do this BEFORE quoting any experiment numbers.
 - [ ] Step 2 calibration targets (`data/targets_step2.mat`): bequest-share
   by recipient decile (Westermeier et al. 2016), wealth share 65+,
   ABS top-share validation series.
