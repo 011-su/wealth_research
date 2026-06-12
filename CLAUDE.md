@@ -240,3 +240,14 @@ apply (A_t′ + R) at every time step without reassembly.
     inheritance kernel, value side gets W(a)). The appendix says only
     "h_max acts as a hard upper bound"; this is the consistent reading
     (mass must go somewhere), but flagging the choice.
+13. **Revenue balance is INCREMENTAL, not total** (user decision
+    2026-06-12, overrides appendix §3.4): Rev(tau*) = Rev_status_quo +
+    G·N_entry. Rationale: status-quo revenue is a leak out of the
+    household sector (no government in the model); §3.4's total balance
+    would turn exp1 into a tax cut plus full recycling, mixing
+    redistribution with leak elimination (measured: tau* = 0.139 < 0.20,
+    mean wealth +5%). Holding the leak constant isolates redistribution.
+    Related insight for the paper: with wealth-independent returns (Step
+    1), retiming transfers moves aggregate wealth only through MPC
+    heterogeneity (compounding cancels — r·W invariant to who holds W);
+    with Step 2 r(a), a first-order non-behavioural channel reappears.
