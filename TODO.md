@@ -25,6 +25,14 @@ to the "Discrepancies vs. appendix" section in `CLAUDE.md`.
   compared to data that partly measures gifts (Erbschaftsteuerstatistik
   covers Schenkungen too). Decide treatment when fixing the Step 2
   calibration targets.
+- [ ] **Warm glow over gross vs. net bequest.** Step 1's W(a) values the
+  gross estate, so the estate tax and the grant do not enter the HJB at
+  all: zero donor savings response by construction (observed: V is
+  policy-invariant, warm-started solves converge in 1 iteration). If the
+  paper wants a donor margin, Step 2's De Nardi form should value the
+  net-of-tax bequest W(a − T_e(a)) — decide alongside Block D.2 and flag
+  in the discussion section either way (outline §7 lists the donor
+  response as a qualitative margin; in Step 1 it is exactly zero).
 
 ## Calibration
 

@@ -76,14 +76,17 @@ read-only, git-ignored).
   1.0 placeholder; pull Step 2.C forward before calibrating for real.
 - **`params_derive.m`**: recomputes model-unit fields from `*_eur` inputs;
   call it after overriding any EUR field in an experiment script.
-- **`run_exp1_grunderbe.m`**: revenue-balance bisection on tau0 (G = 20k
-  EUR at entry, tolerance 0.1% of the grant bill), warm-started, resumable
-  bracket, comparison figures vs. the status quo. **Validated end-to-end**
-  (theta_b = 1 placeholder, machinery check only): tau* = 0.1392 — the 20k
-  grant costs less than the 0.20 placeholder rate raises. Distribution
-  moves as expected: bottom-50% 12.7→13.5%, Gini 0.548→0.537, top-1%
-  6.9→6.6%, mean wealth 406k→428k EUR (young entrants compound the grant).
-  Results in `results/step1/exp1_grunderbe.mat` + figures.
+- **`run_exp1_grunderbe.m`**: INCREMENTAL revenue balance (discrepancy 13)
+  Rev(tau*) = Rev_SQ + G·N_entry, Illinois on tau, warm-started, resumable.
+  **Result** (theta_b = 1 placeholder, machinery check): tau* = 0.3722
+  (residual 6e-8, 6 solves). Clean redistribution: mean wealth ~constant
+  (406k→401k EUR, −1.4% = the MPC channel), bottom-50% 12.7→13.9%, Gini
+  0.548→0.532, top-1% unchanged. Results + figures in `results/step1/`.
+- **Step 1 estate tax has zero donor response by construction**: the warm
+  glow W(a) values the GROSS estate, so neither tau nor G enters the HJB
+  at all — V is policy-invariant (warm-started solves converge in 1
+  iteration) and the whole effect runs through the KFE kernel. Note for
+  interpretation and for the Step 2 bequest-motive decision (see TODO).
 - **MATLAB stability**: a batch run died at a fatal interpreter crash
   (`~/matlab_crash_dump.27552-1`) while the machine was 14.6 GB into swap;
   close the desktop MATLAB during long runs (see TODO).
