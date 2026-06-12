@@ -77,8 +77,16 @@ read-only, git-ignored).
 - **`params_derive.m`**: recomputes model-unit fields from `*_eur` inputs;
   call it after overriding any EUR field in an experiment script.
 - **`run_exp1_grunderbe.m`**: revenue-balance bisection on tau0 (G = 20k
-  EUR at entry, tolerance 0.1% of the grant bill), warm-started, with
-  comparison figures vs. the status quo.
+  EUR at entry, tolerance 0.1% of the grant bill), warm-started, resumable
+  bracket, comparison figures vs. the status quo. **Validated end-to-end**
+  (theta_b = 1 placeholder, machinery check only): tau* = 0.1392 — the 20k
+  grant costs less than the 0.20 placeholder rate raises. Distribution
+  moves as expected: bottom-50% 12.7→13.5%, Gini 0.548→0.537, top-1%
+  6.9→6.6%, mean wealth 406k→428k EUR (young entrants compound the grant).
+  Results in `results/step1/exp1_grunderbe.mat` + figures.
+- **MATLAB stability**: a batch run died at a fatal interpreter crash
+  (`~/matlab_crash_dump.27552-1`) while the machine was 14.6 GB into swap;
+  close the desktop MATLAB during long runs (see TODO).
 - **`tests/run_tests.m`** runs the whole suite in one MATLAB session.
 - Workflow notes: never pipe long MATLAB batch runs through `tail` (output
   is lost if the process dies); announce runtime estimates for anything
