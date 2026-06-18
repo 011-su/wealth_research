@@ -3,3 +3,4 @@ external/
 results/
 *.asv
 *.mat~
+*.pdf
