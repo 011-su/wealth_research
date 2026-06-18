@@ -99,8 +99,15 @@ to the "Discrepancies vs. appendix" section in `CLAUDE.md`.
   Step 2 r(a) heterogeneity a non-behavioural channel reappears. Make
   this explicit when interpreting exp1 vs exp3.
 
-- [ ] Revenue-balance outer loop (bisection on tau) in `equilibrium.m` or
-  experiment scripts (§3.4); then `run_exp1_grunderbe.m` … exp4.
+- [x] Revenue-balance outer loop: `solve_revenue_balance.m` (incremental
+  condition, one-HJB speedup, fzero on tau). Wrappers: exp1 (20k), exp1b
+  (200k). exp2–exp4 still to write (reuse the core).
+- [ ] **exp2–exp4 must re-solve the HJB per parameter** once their policies
+  enter the HJB (e.g. universal transfer changes the budget; a net-of-tax
+  bequest motive). The one-HJB shortcut in `solve_revenue_balance.m` is
+  specific to Step 1's gross-estate warm glow + entry-kernel grant; it
+  guards with a warning when bequest≠'step1' but the assumption should be
+  rechecked per experiment.
 - [ ] `transition_solve.m` (backward HJB + forward KFE over the cached
   operator blocks; design already supports it — see CLAUDE.md design note).
 - [ ] **MATLAB trial license** [7]: resolve before Step 2 calibration

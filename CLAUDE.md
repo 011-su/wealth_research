@@ -76,16 +76,24 @@ read-only, git-ignored).
   1.0 placeholder; pull Step 2.C forward before calibrating for real.
 - **`params_derive.m`**: recomputes model-unit fields from `*_eur` inputs;
   call it after overriding any EUR field in an experiment script.
-- **`run_exp1_grunderbe.m`**: INCREMENTAL revenue balance (discrepancy 13)
-  Rev(tau*) = Rev_SQ + G·N_entry, Illinois on tau, warm-started, resumable.
-  **Result** (theta_b = 1 placeholder, machinery check): tau* = 0.3722
-  (residual 6e-8, 6 solves). Clean redistribution: mean wealth ~constant
-  (406k→401k EUR, −1.4% = the MPC channel), bottom-50% 12.7→13.9%, Gini
-  0.548→0.532, top-1% unchanged. Results + figures in `results/step1/`.
+- **`solve_revenue_balance.m`** (reusable core): INCREMENTAL revenue balance
+  (discrepancy 13) Rev(tau*) = Rev_SQ + G·N_entry. **Solves the HJB ONCE and
+  sweeps tau with KFE-only re-solves**, because in Step 1 V is invariant to
+  tau and G (see next bullet) — fzero (Brent) on tau over cheap KFE solves.
+  Cuts the outer loop from ~6 full HJB+KFE solves (~27 min, was the real
+  bottleneck — NOT the root-finder) to 1 HJB + ~8 KFE (~2 min). Guards
+  against misuse when bequest≠'step1' (net-of-tax motive would break the
+  invariance). `run_exp1_grunderbe.m` (G=20k) and
+  `run_exp1b_grunderbe_200k.m` (G=200k) are thin wrappers;
+  `save_experiment_figures.m` is the shared plotting helper.
+  **Exp1 result** (theta_b = 1 placeholder): tau* = 0.3722. Clean
+  redistribution: mean wealth 406k→401k EUR (−1.4% = the MPC channel),
+  bottom-50% 12.7→13.9%, Gini 0.548→0.532, top-1% ~unchanged.
 - **Step 1 estate tax has zero donor response by construction**: the warm
-  glow W(a) values the GROSS estate, so neither tau nor G enters the HJB
-  at all — V is policy-invariant (warm-started solves converge in 1
-  iteration) and the whole effect runs through the KFE kernel. Note for
+  glow W(a) values the GROSS estate, and the grant enters only the entry
+  kernel, so neither tau nor G enters the HJB — V/policy/generator A are
+  policy-invariant. This is what licenses the one-HJB speedup above, and
+  it means the whole redistribution runs through the KFE kernel. Note for
   interpretation and for the Step 2 bequest-motive decision (see TODO).
 - **MATLAB stability**: a batch run died at a fatal interpreter crash
   (`~/matlab_crash_dump.27552-1`) while the machine was 14.6 GB into swap;
