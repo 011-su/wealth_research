@@ -86,9 +86,15 @@ read-only, git-ignored).
   invariance). `run_exp1_grunderbe.m` (G=20k) and
   `run_exp1b_grunderbe_200k.m` (G=200k) are thin wrappers;
   `save_experiment_figures.m` is the shared plotting helper.
-  **Exp1 result** (theta_b = 1 placeholder): tau* = 0.3722. Clean
-  redistribution: mean wealth 406k→401k EUR (−1.4% = the MPC channel),
-  bottom-50% 12.7→13.9%, Gini 0.548→0.532, top-1% ~unchanged.
+  **Exp1 result** (theta_b = 1 placeholder): tau* = 0.3722 (Na=300; 0.3661
+  at Na=100). Clean redistribution: mean wealth 406k→401k EUR (−1.4% = the
+  MPC channel), bottom-50% 12.7→13.9%, Gini 0.548→0.532, top-1% ~unchanged.
+  **Exp1b (G=200k) is INFEASIBLE under revenue balance**: even tau=1 (100%
+  above the 400k exemption) raises an increment of 0.061 vs a 0.111 bill.
+  The largest revenue-balanceable Grunderbe is ~110k EUR — a headline bound
+  (upper bound: ignores donor response, placeholder theta_b + constant
+  mortality). The estate-tax base above 400k is too thin to fund a grant
+  paid to every entrant beyond ~110k.
 - **Step 1 estate tax has zero donor response by construction**: the warm
   glow W(a) values the GROSS estate, and the grant enters only the entry
   kernel, so neither tau nor G enters the HJB — V/policy/generator A are

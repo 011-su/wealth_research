@@ -70,6 +70,18 @@ to the "Discrepancies vs. appendix" section in `CLAUDE.md`.
   levels (~1e-5 density) but re-check after Step 2 fattens the top tail;
   raise a_max if it grows.
 
+## Memory / environment
+
+- [ ] **Full-res (Na=300) direct solves exhaust the 16 GB machine** — root
+  cause of the repeated MATLAB crashes (5+ since Jun 12, all "Trace trap"
+  under heavy swap), NOT a code bug. The sparse LU fill-in of the (a,y,h)
+  Kronecker system at N≈1.7e5 needs more RAM than is free. Mitigations:
+  (a) run experiments at Na≤200; (b) reboot to clear the swap backlog
+  before a full-res run; (c) reorder states (a slowest) to cut fill-in
+  bandwidth; (d) longer term, more RAM or an iterative KFE solve. Exp1/1b
+  results above are at Na=100 for this reason; re-run at Na=300 when memory
+  allows (tau* shifts ~0.006 between Na=100 and 300 — small).
+
 ## Model fit (known Step 1 limitations, for the paper's discussion)
 
 - [ ] Top tail far too thin vs. German data: status quo (placeholder
