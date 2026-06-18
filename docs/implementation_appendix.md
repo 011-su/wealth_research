@@ -42,7 +42,7 @@ $$dz_{\varepsilon,t} = -\theta_\varepsilon\, z_{\varepsilon,t}\, dt + \sigma_{\v
 
 with $\theta_\varepsilon = 3$ (annual persistence $\rho_\varepsilon = e^{-3} \approx 0.05$, essentially iid each year) and stationary variance $\sigma_{z_\varepsilon}^2 = \sigma_\varepsilon^2 = 0.18$ (FSS earnings level estimate).
 
-Discretize with $N_\varepsilon = 5$ states via Tauchen on the stationary Gaussian. Generate the $5 \times 5$ annual transition matrix $P_\varepsilon$ (which will be close to a rank-1 matrix because of the fast mean reversion: all rows nearly equal to the stationary distribution). Convert to $\Lambda_\varepsilon$ via matrix log as above.
+Discretize with $N_\varepsilon = 5$ states via Tauchen on the stationary Gaussian. Generate the $5 \times 5$ annual transition matrix $P_\varepsilon$ (which will be close to a rank-1 matrix because of the fast mean reversion: all rows nearly equal to the stationary distribution). Convert to $\Lambda_\varepsilon$ via matrix log, applying the same validity check as §A.1.1 — but note that a near-rank-1 $P_\varepsilon$ frequently has *no* valid Markov generator (the embedding problem), and $\log_m(P_\varepsilon)$ will then carry negative off-diagonals. The fallback $\Lambda_\varepsilon = (P_\varepsilon - I)/\Delta t$ is the *expected* path for the transitory component, not a rare exception; verify non-negative off-diagonals and zero row sums to $10^{-10}$ either way, and document which branch was taken.
 
 ### A.1.3 Combined income state
 
@@ -79,6 +79,8 @@ $$y(z_p, z_\varepsilon, h) = \exp\!\big(\psi(h) + z_p + z_\varepsilon - \tfrac{1
 
 with the Jensen term ensuring $\mathbb{E}[y \mid h] = \exp(\psi(h))$. The grand mean $\overline{\mathbb{E}[y \mid h]}$ over the working life is normalized to 1 by the $\psi_0$ shift in §A.1.5, so the wage $w$ is literally mean earnings.
 
+**Units bridge to EUR.** Model income and wealth are denominated in units of mean annual gross earnings ($w = 1$). The *Erbschaftsteuer* exemptions and brackets (§D) and the grant $G$ are, by contrast, EUR-denominated, so they are only well-defined relative to a single scale factor $\bar y_{\mathrm{EUR}}$ = mean annual gross earnings in EUR (German full-time equivalent, $\approx €45{,}000$; pin to the calibration vintage). A model wealth level $a$ is $a \cdot \bar y_{\mathrm{EUR}}$ euros — e.g. the €400,000 *Steuerklasse* I exemption is $E_I \approx 8.9$ in model units, and $a_{\max} = 1000\,\bar y \approx €45$m. Store $\bar y_{\mathrm{EUR}}$ in the `par` struct and convert every EUR input to model units once at construction; never mix the two in the operators.
+
 ### A.1.7 Retirement
 
 At $h \geq h_\mathrm{ret} = 43$, the productivity state collapses to a single deterministic value $y_\mathrm{ret} = \mathrm{repl} = 0.55$ (OECD net replacement rate, Germany). Implementation: the joint income generator $\Lambda_y$ is replaced by an absorbing structure at $h_\mathrm{ret}$ — all 35 working-age states transition deterministically to a single retirement state at the moment of retirement, after which there is no income stochasticity.
@@ -91,7 +93,9 @@ $N_h = 79$ points, $h = 0, 1, \ldots, 78$. Age advances at unit rate. Working li
 
 ### A.1.9 Total state size
 
-$I \times N_p \times N_\varepsilon \times N_h = 500 \times 7 \times 5 \times 79 = 1{,}382{,}500$ during working life (plus a smaller absorbing retirement region). All operators are sparse; the full HJB linear system has of the order $10^7$ nonzeros. Solves in tens of seconds on a workstation. *This is larger than the earlier draft's $5 \times 10^5$; the cost of the transitory component is a factor of 5.*
+$I \times N_p \times N_\varepsilon \times N_h = 500 \times 7 \times 5 \times 79 = 1{,}382{,}500$ during working life (plus a smaller absorbing retirement region). All operators are sparse; the full HJB linear system has of the order $10^7$ nonzeros. *This is larger than the earlier draft's $5 \times 10^5$; the transitory component costs a factor of ~5.*
+
+**Budget for memory, not just time.** Each implicit step is a direct sparse factorization of a system this size, and the LU fill-in — not the nonzero count of $A$ — drives the footprint. On the prototype at $N \approx 1.7 \times 10^5$ (one-eighth of this) a single stationary solve already took ~1–2 minutes and exhausted a 16 GB machine, with repeated out-of-memory crashes during the multi-solve policy experiments. At $N \approx 1.4 \times 10^6$ plan for a workstation with $\ge 32$–64 GB, run the grid-robustness checks (test 6) at reduced $I$ first, and consider state ordering ($a$ slowest, to cut the aging/kernel bandwidth) or switching the KF solve to `bicgstab` before committing to the full dense-tensor grid. "Tens of seconds" is realistic only with ample RAM and an ordered, possibly iterative, solve.
 
 ### A.2 Boundary conditions
 
@@ -197,7 +201,12 @@ Precompute: T_e^SQ_ref = revenue from SQ schedule applied to calibrated SQ g*
               during calibration in §F)
 
 Outer loop (bisection on delta):
-    Initialize delta_lo = 0, delta_hi = delta_max (e.g., 0.4 = +40pp top rate)
+    Initialize delta_lo = 0, delta_hi = delta_max
+        (delta_max = 0.70, the hard cap at which the 30% top bracket reaches
+         100%; see §G.7. Use the full [0, 0.70] bracket so the feasibility
+         tests of §G.7 can be detected. A politically plausible sub-range is
+         delta <~ 0.40, used only as a reference band in reporting, not as a
+         search bound.)
     Repeat:
         delta = (delta_lo + delta_hi) / 2
         Run B.1 (HJB) under tax schedule tau_e(delta) with structural reform.

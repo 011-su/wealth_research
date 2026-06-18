@@ -198,73 +198,85 @@ DO require is already in place: `operator_build` keeps the static blocks
 and `kfe_solve` exposes the inheritance kernel R, so the forward sweep can
 apply (A_t′ + R) at every time step without reassembly.
 
-## Discrepancies vs. appendix
+## Appendix overhaul (2026-06-18) and code divergence
 
-1. **`huggett_diffusion_partialeq.m` runs the OU in *levels*, not logs.** The
-   log-OU branch exists but is commented out; the appendix (§2 Block A.1)
-   assumes the script's style matches log-OU. Not blocking: we keep the state
-   y = log income and exponentiate in the budget constraint, which is cleaner
-   than either reference (constant OU coefficients, no Itô term).
-2. **N_y = 7 is very coarse for a diffusion.** Moll uses J = 40
-   (huggett_diffusion) / J = 15 (lifecycle) points to resolve the
-   second-order income operator. With 7 points, dy ≈ 0.63 — the diffusion
-   term will be poorly resolved. Kept 7 per §8 for now; cheap to raise, and
-   we should revisit before validation runs. (N_y = 7 reads like a leftover
-   from a discrete-Markov-chain formulation.)
-3. **"Aiyagari limit" regression target (§5.1.3).** Appendix says to compare
-   the collapsed model to "Moll's stationary Aiyagari diffusion script", but
-   that script (`aiyagari_diffusion_equilibrium.m`) is *general* equilibrium
-   (solves for r). Our model is PE with fixed r0, so the correct regression
-   target is `huggett_diffusion_partialeq.m` with r set to r0.
-4. **"Geometric spacing" of the a grid (§3.1) is ill-defined from a = 0**
-   (constant-ratio spacing can't start at zero). Implemented the standard
-   HACT alternative: power-law spacing `a_max * u.^curv`, curvature 2, which
-   delivers the intended refinement near the constraint. Flagging the
-   interpretation, can switch to a shifted-log grid if preferred.
-5. **SparseEcon's stack is adaptive sparse grids**, not dense tensor grids +
-   Kronecker operators as §3.1 prescribes. So "inherit working solvers from
-   SparseEcon" mostly means: reuse its templates/patterns (e.g. `KF.m`
-   birth-death bookkeeping, transition-dynamics layout in
-   `use_cases/05_transition_dynamics`), while the dense-grid machinery comes
-   from the Moll scripts. The appendix's §3 numbers (N ≈ 1.7e5) are all
-   dense-grid, consistent with this reading.
-6. **Appendix §3.3 transition reference "`use_cases/05_...`"** resolves to
-   `use_cases/05_transition_dynamics` — exists, fine.
-7. **MATLAB is on a trial license** (R2026a, license "DEMO") — fine for now,
-   but worth resolving before the ~100-solve Step 2 calibration runs.
-8. **§8 units are internally inconsistent**: `w = 1.0` (normalisation) but
-   `a_max`, `F`, `G` in EUR. With w = 1 nobody ever reaches a 4e5 exemption.
-   Resolved via explicit `params.eur_per_unit = 4.5e4` (≈ German mean annual
-   gross earnings, Step 1 placeholder): EUR-denominated parameters are
-   converted to model units in `params_default.m` (`*_eur` fields are the
-   inputs, model-unit fields derived). Keeps w = 1 per §8 and V, c well
-   scaled. Calibrate `eur_per_unit` properly in Step 2.
-9. **Appendix budget has zero income in retirement** (`w e^y 1{h<hR}` only),
-   which gives c = 0 and u = -Inf for retirees at the constraint — the HJB
-   is ill-posed without a floor. Added `params.pension_eur = 1.35e4` (~30%
-   of mean earnings, Grundsicherung-like, Step 1 placeholder). Step 2 should
-   replace this with a proper German pension (point system / OECD data).
-10. **Heirs' income state at entry is unspecified** (§1.2 only fixes initial
-    wealth). Implemented: y′ drawn from the stationary distribution of the
-    discretised income process, independent of the parent. Alternative
-    (intergenerational y-persistence) would need a copula parameter — Step 2
-    decision.
-11. **Warm-glow W(a) = θ_b a^(1-γ)/(1-γ) is -Inf at a = 0** for γ ≥ 1.
-    Added `params.bequest_shift_eur = 2e4` inside the power (regularisation,
-    same role as De Nardi's θ₂). Affects θ_b calibration only marginally.
-12. **Terminal age**: aging out at h_max is implemented as certain death
-    with bequest (the aging outflow at the last age node feeds the
-    inheritance kernel, value side gets W(a)). The appendix says only
-    "h_max acts as a hard upper bound"; this is the consistent reading
-    (mass must go somewhere), but flagging the choice.
-13. **Revenue balance is INCREMENTAL, not total** (user decision
-    2026-06-12, overrides appendix §3.4): Rev(tau*) = Rev_status_quo +
-    G·N_entry. Rationale: status-quo revenue is a leak out of the
-    household sector (no government in the model); §3.4's total balance
-    would turn exp1 into a tax cut plus full recycling, mixing
-    redistribution with leak elimination (measured: tau* = 0.139 < 0.20,
-    mean wealth +5%). Holding the leak constant isolates redistribution.
-    Related insight for the paper: with wealth-independent returns (Step
-    1), retiming transfers moves aggregate wealth only through MPC
-    heterogeneity (compounding cancels — r·W invariant to who holds W);
-    with Step 2 r(a), a first-order non-behavioural channel reappears.
+`docs/implementation_appendix.md` was **replaced wholesale** by the user with a
+much more detailed spec ("Technical Appendix for Implementation", §A–§J, EUR
+references retitled). It is no longer the model the code implements:
+
+- **4-D state** `(a, z_p, z_ε, h)`: income split into a persistent OU
+  (Rouwenhorst, N_p=7) and a transitory OU (Tauchen, N_ε=5), generators via
+  matrix-log of annual transition matrices. Code has a single OU `y` (N_y=7).
+- **Ages 0–78** (biological 22+), retirement at h_ret=43 via collapse to a
+  single deterministic state at replacement rate 0.55. Code: h0=18, h_max=99,
+  hR=65, Nh=82, pension floor.
+- **Life-cycle earnings profile** ψ(h) (quartic, FSS). Code: none.
+- **Full ErbStG Steuerklasse-I** progressive schedule with a δ rate-shift,
+  Verschonungsregeln, €400k→€200k exemption. Code: flat `tau0·max(b−F,0)`.
+- **Fertility-based inheritance**: heir-count f_n(n|h), childless pool,
+  Young-lottery kernel. Code: single-heir split, no fertility.
+- **Indirect inference** for (φ, â) bequest params (De Nardi form). Code:
+  one-param warm glow, degenerate BWR calibration.
+- **Two-step (Step 1 / Step 2) staging dropped.** The code is built around
+  `params.income='step1'|'step2'` toggles; the new spec is single-target.
+- **Experiments renumbered/changed**: exp2 is now a retirement transfer (not
+  "reform, no grant"); exp1a/1b are the G=20k/200k Grunderbe.
+
+So the current code implements a **Step-1-like subset** of the new spec.
+Closing the gap is now the main roadmap item — see TODO "Spec overhaul".
+**Three of our run's insights were folded INTO the new appendix**: incremental
+revenue balance (§G), the one-HJB-solve optimisation (§B.4 "subtle point on
+coupling", §E.2), and the G=200k infeasibility (§G.7, test 12).
+
+## Discrepancies vs. appendix (reconciled against the 2026-06-18 appendix)
+
+Status tags: RESOLVED (new appendix specifies it), MOOT (model changed),
+OPEN (still live), ADOPTED (folded into the spec). Section refs are to the
+NEW appendix.
+
+1. OU levels-vs-logs — **MOOT.** New spec is log-productivity with an explicit
+   Jensen correction (§A.1.6); the reference-script quirk no longer bites.
+2. N_y=7 coarse — **SUPERSEDED.** Income is now 35 states (7×5) via
+   Rouwenhorst+Tauchen+matrix-log (§A.1.1–3); Rouwenhorst handles persistence
+   at low N. New risk instead: matrix-log of the near-rank-1 *transitory*
+   matrix often has no valid generator — **appendix patched (§A.1.2)** to apply
+   the §A.1.1 validity check + (P−I)/Δt fallback there too.
+3. Aiyagari-limit target — **MOOT.** New validation is an Achdou Huggett
+   replication (test 1, §J), not the GE Aiyagari diffusion script.
+4. Geometric spacing — **RESOLVED.** New §A.1 gives an explicit
+   exponential-stretch grid (λ=5), well-defined from a_min=0. Our power-law
+   grid is a valid alternative; can switch to the appendix formula.
+5. SparseEcon sparse-vs-dense — **PARTLY OPEN.** New spec still prescribes a
+   dense tensor grid (1.38M states, §A.1.9) on SparseEcon `lib/` primitives,
+   not adaptive grids — same reading, now compounded by a real memory wall:
+   **appendix patched (§A.1.9)** with a memory/runtime warning from our crashes.
+6. Transition ref `use_cases/05` — **MOOT/fine** (still §E, §I).
+7. MATLAB trial license — **OPEN** (environmental); now also the full-model
+   memory wall (TODO "Memory / environment").
+8. Units EUR-vs-w=1 — **REAL, now patched.** New spec mixes model-unit wealth
+   (units of mean earnings) with EUR tax thresholds, conversion left undefined.
+   **Appendix patched (§A.1.6)** defining ȳ_EUR (≈€45k); our
+   `eur_per_unit=4.5e4` implements exactly this.
+9. Zero retirement income — **RESOLVED.** New §A.1.7 gives retirement income =
+   0.55 replacement rate; HJB well-posed. Our pension floor is superseded;
+   code should adopt the replacement-rate spec.
+10. Heirs' income at entry — **RESOLVED.** New §C.1/§C.4: heirs draw z_p, z_ε
+    from the ergodic distributions (benchmark), with a persistent-transmission
+    sensitivity (IG elasticity 0.32). Matches our stationary-draw choice.
+11. Warm-glow −∞ at a=0 — **RESOLVED.** New §A.2 W(a)=φ(a−â)^(1−γ)/(1−γ) for
+    a≥â + floor below; â is calibrated (§F). Our `bequest_shift` is the analog,
+    but the motive is now the calibrated De Nardi form, not one-param warm glow.
+12. Terminal age — **OPEN (minor).** New §A.2 sets V(·,H)=W at H=78 but doesn't
+    fully specify the KF mass handling at H; our forced-death-with-bequest
+    reading is consistent. Left as-is.
+13. Revenue balance incremental — **ADOPTED.** New §G *is* our incremental
+    convention (T_e^SQ held constant, only T_e^grant funds the grant). No
+    longer a discrepancy — it's the contract. Paper note still stands: with
+    wealth-independent returns retiming moves aggregate wealth only via MPC
+    heterogeneity (compounding cancels); with heterogeneous r(a) a first-order
+    non-behavioural channel reappears.
+
+**Appendix edits made this session** (2026-06-18): §A.1.2 transitory-generator
+validity/fallback; §A.1.6 EUR units bridge; §A.1.9 memory/runtime realism;
+§B.4 δ_max reconciled to 0.70 (was "0.4", contradicting §G.7's hard cap, with
+0.40 kept as a political reference band).

@@ -3,6 +3,32 @@
 Working list of known gaps and decisions deferred. Numbers in brackets refer
 to the "Discrepancies vs. appendix" section in `CLAUDE.md`.
 
+## Spec overhaul (2026-06-18) — the appendix now describes a different model
+
+The user replaced `docs/implementation_appendix.md` with a much richer spec
+(4-D state `(a, z_p, z_ε, h)`, life-cycle ψ(h), full ErbStG with δ-shift,
+fertility-based inheritance, indirect inference, ages 0–78, no two-step
+staging). The current code implements a Step-1-like subset. Bringing the code
+up to the new contract is now the main roadmap; in rough dependency order:
+
+- [ ] Income: split into persistent (Rouwenhorst, N_p=7) + transitory
+  (Tauchen, N_ε=5) components, generators via `logm` of annual transition
+  matrices, Kronecker-sum Λ_y (§A.1.1–3). Watch the transitory generator
+  validity (near rank-1; use the (P−I)/Δt fallback, §A.1.2).
+- [ ] Life-cycle earnings profile ψ(h) quartic from FSS (§A.1.5); age grid
+  0–78, retirement collapse at h_ret=43 to replacement rate 0.55 (§A.1.7).
+- [ ] Bequest motive: De Nardi W(a)=φ(a−â)^(1−γ)/(1−γ), calibrate (φ,â) by
+  indirect inference (`fminsearch`, §F) on BWR / wealth-share-65+ / below-
+  exemption-share. (Supersedes the degenerate one-param BWR calibration.)
+- [ ] Full ErbStG Steuerklasse-I schedule with δ rate-shift, Verschonungs-
+  regeln β(a), €400k→€200k exemption (§D); outer-loop bisection on δ.
+- [ ] Inheritance kernel with heir-count f_n(n|h), childless pool, Young
+  lottery (§C); fertility data from Destatis.
+- [ ] Re-map experiments to the new numbering (exp2 = retirement transfer,
+  exp3 = annual transfer, exp4 = Verschonung closure with endogenous G).
+- [ ] Decide whether to keep the `params.*='step1'|'step2'` toggle scaffold
+  or refactor to the single-target structure the new spec implies.
+
 ## Model realism
 
 - [ ] **Pensions.** Replace the flat Grundsicherung-like floor
