@@ -62,6 +62,7 @@ last  = [];
 
     function s = eval_tau(tau, Geur)
         pp = params; pp.tau0 = tau; pp.G_eur = Geur; pp = params_derive(pp);
+        tk = tic;
         [m, gdens, info] = kfe_solve(grids, ops, pp, A);
         n_kfe = n_kfe + 1;
         s = struct('params', pp, 'grids', grids, 'ops', ops, 'A', A, ...
@@ -69,6 +70,14 @@ last  = [];
                    'kfe', info, 'hjb_iter', n_iter);
         s.entry_flow = sum(ops.death_rate .* m);
         s.revenue    = sum(ops.tax_fn(grids.aa, pp) .* ops.death_rate .* m);
+        % Per-solve progress: at full resolution each KFE solve is slow
+        % (~10 min, heavy LU fill-in from the inheritance kernel). Emitting a
+        % line after every solve also keeps the process from going stdout-silent
+        % long enough to trip the HU pool machine's idle-process reaper (~28 min).
+        if o.verbose
+            fprintf('  [kfe %d] tau=%.4f G_eur=%.0f solved in %.0f s\n', ...
+                    n_kfe, tau, Geur, toc(tk));
+        end
     end
 
 % Status-quo equilibrium (same HJB; status-quo rate, no grant). Kept for a
