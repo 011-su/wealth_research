@@ -98,15 +98,28 @@ up to the new contract is now the main roadmap; in rough dependency order:
 
 ## Memory / environment
 
-- [ ] **Full-res (Na=300) direct solves exhaust the 16 GB machine** — root
+- [ ] **Full-res (Na=300) direct solves exhaust the 16 GB Mac** — root
   cause of the repeated MATLAB crashes (5+ since Jun 12, all "Trace trap"
   under heavy swap), NOT a code bug. The sparse LU fill-in of the (a,y,h)
   Kronecker system at N≈1.7e5 needs more RAM than is free. Mitigations:
   (a) run experiments at Na≤200; (b) reboot to clear the swap backlog
   before a full-res run; (c) reorder states (a slowest) to cut fill-in
-  bandwidth; (d) longer term, more RAM or an iterative KFE solve. Exp1/1b
-  results above are at Na=100 for this reason; re-run at Na=300 when memory
-  allows (tau* shifts ~0.006 between Na=100 and 300 — small).
+  bandwidth; (d) longer term, more RAM or an iterative KFE solve. Resolved
+  in practice by moving full-res runs to the HU pool machine (62 GB).
+- [ ] **KFE direct solve is slow at full res (~10 min/solve at Na=300)** —
+  the inheritance kernel R couples every dying state to the h0 entry block,
+  destroying the operator's band structure, so `(A'+R)\rhs` has heavy LU
+  fill-in. Fine for one solve, but the revenue-balance sweep (fzero, ~10
+  KFE) then takes ~2 h, and the new-spec model (N≈1.4e6) would be
+  intractable this way. **Fix: iterative KFE solve** — `bicgstab`/`gmres`
+  on (A'+R)' with an ILU or block preconditioner, or reorder states (a
+  slowest) so R's coupling stays narrow. Appendix §A.1.9 (annotated) and
+  the build plan already flag bicgstab. Do before scaling to the full model.
+- [ ] **HU pool machine kills jobs silent on stdout for ~28 min** (idle
+  reaper; not OOM, not ulimit — see memory note `remote-server-access`).
+  Worked around for the revenue-balance sweep by printing after every KFE
+  solve (commit 3cf356b). Any long silent computation launched there must
+  emit a periodic heartbeat, or run under a wrapper that does.
 
 ## Model fit (known Step 1 limitations, for the paper's discussion)
 
