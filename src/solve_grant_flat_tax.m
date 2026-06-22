@@ -67,17 +67,33 @@ n_kfe = 0; last = [];
 % True status quo (G = 0, no surtax) for the comparison.
 sol_sq = eval_tg(0, 0);
 
-% Bracket the surtax: at tau_add = 0 with the grant present, surtax_rev = 0 < bill.
-f_lo = resid(0);
-f_hi = resid(o.tau_add_max);
+% Bracket the surtax. At tau_add = 0 the surtax raises nothing, so the budget
+% residual is exactly -bill < 0; approximate bill from the status-quo entry
+% flow (it barely moves with the grant) to avoid a redundant KFE solve.
+G_model = G_eur / params.eur_per_unit;
+f_lo = -G_model * sol_sq.entry_flow;          % residual at tau_add = 0 (no solve)
+f_hi = resid(o.tau_add_max);                  % one (expensive) solve at the cap
+
 out = struct(); out.tau_add_max = o.tau_add_max;
 if f_hi < 0
     out.feasible = false; out.tau_add = NaN;
     out.max_grant_eur = last.surtax_rev / last.entry_flow * params.eur_per_unit;
 else
+    % Illinois (modified regula falsi): reuses f_lo/f_hi, no endpoint
+    % recomputation (unlike fzero) -- each KFE solve at full res is costly.
     out.feasible = true;
-    out.tau_add = fzero(@resid, [0, o.tau_add_max], optimset('TolX', 1e-5, 'Display', 'off'));
-    resid(out.tau_add);
+    lo = 0; hi = o.tau_add_max; flo = f_lo; fhi = f_hi; side = 0; tau_star = hi;
+    for it = 1:30
+        t_new = hi - fhi * (hi - lo) / (fhi - flo);
+        f_new = resid(t_new);
+        if abs(f_new) < 1e-3 * max(last.bill, realmin), tau_star = t_new; break; end
+        if f_new < 0
+            lo = t_new; flo = f_new; if side == -1, fhi = fhi / 2; end; side = -1;
+        else
+            hi = t_new; fhi = f_new; if side == +1, flo = flo / 2; end; side = +1;
+        end
+    end
+    out.tau_add = tau_star;
 end
 
 out.sol = last;   out.mom = moments(last, last.params);
