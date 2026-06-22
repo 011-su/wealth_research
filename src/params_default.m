@@ -62,9 +62,11 @@ params.target_bwr = 0.024;   % calibration target: bequest flow / wealth per
 params.bequest_shift_eur = 2e4;  % small shift: W(0) finite for gamma >= 1
                              % (numerical regularisation, cf. De Nardi theta_2)
 
-%% Estate tax, Step 1 (Block E.1): T_e(b) = tau0 * max(b - F, 0)
-params.tau0  = 0.20;         % flat rate (validation placeholder, not ErbStG)
-params.F_eur = 4e5;          % exemption (EUR)
+%% Estate tax, Step 1 (Block E.1): T_e(b) = tau0*max(b-F,0) + tau_add*b
+params.tau0    = 0.20;       % flat rate above exemption (placeholder, not ErbStG)
+params.F_eur   = 4e5;        % exemption (EUR)
+params.tau_add = 0;          % flat grant-funding surtax on ALL bequests (no
+                             % exemption); set by solve_grant_flat_tax.m, 0 = SQ
 
 %% Capital grant (Block J)
 params.G_eur = 0;            % grant (EUR): 0 status quo, 2e4 Grunderbe
