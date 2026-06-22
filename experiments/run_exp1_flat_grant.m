@@ -14,7 +14,7 @@ out_dir = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'results', 'step
 if ~exist(out_dir, 'dir'), mkdir(out_dir); end
 
 glabel = sprintf('%gk EUR', G_eur/1e3);
-tag    = matlab.lang.makeValidName(sprintf('flatgrant_%gk', G_eur/1e3));
+tag    = matlab.lang.makeValidName(sprintf('flatgrant_%gk_%s', G_eur/1e3, params.mortality));
 
 t0  = tic;
 out = solve_grant_flat_tax(params, G_eur);
@@ -40,7 +40,7 @@ end
 sol = out.sol; V = sol.V; m = sol.m; c = sol.c; %#ok<NASGU>
 save(fullfile(out_dir, [tag '.mat']), 'params', 'G_eur', 'V', 'm', 'c', 'mom', 'out');
 save_experiment_figures(sol, mom, sq, out_dir, tag, series_label, ...
-    sprintf('Exp 1 flat surtax (Grunderbe %s)', glabel));
+    sprintf('Exp 1 flat surtax (Grunderbe %s, mortality=%s)', glabel, params.mortality));
 fprintf('saved results and figures to %s\n', out_dir);
 
 end
