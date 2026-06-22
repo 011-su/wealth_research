@@ -224,6 +224,17 @@ references retitled). It is no longer the model the code implements:
 
 So the current code implements a **Step-1-like subset** of the new spec.
 Closing the gap is now the main roadmap item — see TODO "Spec overhaul".
+
+**Progress closing the gap:**
+- **Step 2.C mortality DONE (2026-06-22):** `mortality_step2.m` reads
+  age-rising Destatis 2022/24 hazards from `data/derived/mortality_hazard.csv`
+  (built by `data/make_mortality_hazard.py`, sex-pooled, λ=−ln(1−q)); toggle
+  `params.mortality='step2'` (default still 'step1'). Mean death age 58→81,
+  aging-out @h_max 20%→2%. Crucially it **un-degenerates the BWR calibration**
+  (bwr now responds to theta_b). At theta_b=1 it gives bwr 0.0205→0.0092
+  (deaths now at ~81 after retirement decumulation → die poorer than peak),
+  so theta_b must be calibrated UP to the data target — now well-identified.
+  `compare_mortality.m` shows the before/after.
 **Three of our run's insights were folded INTO the new appendix**: incremental
 revenue balance (§G), the one-HJB-solve optimisation (§B.4 "subtle point on
 coupling", §E.2), and the G=200k infeasibility (§G.7, test 12).
