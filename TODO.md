@@ -116,9 +116,12 @@ up to the new contract is now the main roadmap; in rough dependency order:
   ~17x nnz vs the full LU blow-up that OOM'd Na=300). Benchmark:
   `experiments/time_kfe_methods.m`. **NB the BiCGSTAB family (bicgstab,
   bicgstabl) BREAKS DOWN here** (flag 4) on the fix-one-row generator
-  regardless of preconditioner — gmres is the robust solver. Default is
-  still 'direct'; consider switching experiments to 'iterative' (faster +
-  fits memory, identical results) and re-benchmark at Na=300.
+  regardless of preconditioner — gmres is the robust solver. Validated at
+  Na=300 (commit 56905 benchmark: max|Δm| ~1e-18 vs direct, no OOM, ~2x on
+  the cheap solves; larger win expected on the costly surtax solves). The
+  experiment wrappers (run_status_quo, run_grunderbe, run_exp1_flat_grant)
+  now set kfe_method='iterative' (commit 27daa72); params_default stays
+  'direct' so tests keep the direct baseline.
 - [ ] **HU pool machine kills jobs silent on stdout for ~28 min** (idle
   reaper; not OOM, not ulimit — see memory note `remote-server-access`).
   Worked around for the revenue-balance sweep by printing after every KFE
