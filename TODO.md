@@ -109,15 +109,16 @@ up to the new contract is now the main roadmap; in rough dependency order:
   before a full-res run; (c) reorder states (a slowest) to cut fill-in
   bandwidth; (d) longer term, more RAM or an iterative KFE solve. Resolved
   in practice by moving full-res runs to the HU pool machine (62 GB).
-- [ ] **KFE direct solve is slow at full res (~10 min/solve at Na=300)** —
-  the inheritance kernel R couples every dying state to the h0 entry block,
-  destroying the operator's band structure, so `(A'+R)\rhs` has heavy LU
-  fill-in. Fine for one solve, but the revenue-balance sweep (fzero, ~10
-  KFE) then takes ~2 h, and the new-spec model (N≈1.4e6) would be
-  intractable this way. **Fix: iterative KFE solve** — `bicgstab`/`gmres`
-  on (A'+R)' with an ILU or block preconditioner, or reorder states (a
-  slowest) so R's coupling stays narrow. Appendix §A.1.9 (annotated) and
-  the build plan already flag bicgstab. Do before scaling to the full model.
+- [x] **Iterative KFE solve implemented (2026-06-23, commit c00f732).**
+  `params.kfe_method='iterative'`: ilu(crout, droptol 1e-4) preconditioner +
+  **gmres** (restarted). ~9x faster than direct sparse LU at Na=100 (≈9 s vs
+  ≈76 s), machine-precision match (max|Δm| ~1e-17), bounded memory (ilu fill
+  ~17x nnz vs the full LU blow-up that OOM'd Na=300). Benchmark:
+  `experiments/time_kfe_methods.m`. **NB the BiCGSTAB family (bicgstab,
+  bicgstabl) BREAKS DOWN here** (flag 4) on the fix-one-row generator
+  regardless of preconditioner — gmres is the robust solver. Default is
+  still 'direct'; consider switching experiments to 'iterative' (faster +
+  fits memory, identical results) and re-benchmark at Na=300.
 - [ ] **HU pool machine kills jobs silent on stdout for ~28 min** (idle
   reaper; not OOM, not ulimit — see memory note `remote-server-access`).
   Worked around for the revenue-balance sweep by printing after every KFE
