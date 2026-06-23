@@ -9,6 +9,8 @@ function [sol, mom] = run_status_quo(params)
 % results/step1/.
 
 if nargin < 1, params = params_default(); end
+params.kfe_method = 'iterative';   % gmres + ilu; matches direct to machine
+                                   % precision (validated Na=300), faster + low memory.
 
 out_dir = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'results', 'step1');
 if ~exist(out_dir, 'dir'), mkdir(out_dir); end

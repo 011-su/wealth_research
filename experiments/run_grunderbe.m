@@ -14,6 +14,10 @@ function out = run_grunderbe(params, G_eur)
 % .tau_star, .sol, .mom, .sol_sq, .mom_sq, .increment, .bill, ...).
 
 if nargin < 1 || isempty(params), params = params_default(); end
+params.kfe_method = 'iterative';   % gmres + ilu; matches direct to machine
+                                   % precision (validated Na=300), faster + low
+                                   % memory on the costly KFE sweeps. Override
+                                   % with params.kfe_method='direct' if needed.
 
 out_dir = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'results', 'step1');
 if ~exist(out_dir, 'dir'), mkdir(out_dir); end
@@ -48,7 +52,7 @@ else
     fprintf('  revenue-balanced; the unfunded part is implicitly deficit-financed).\n');
 end
 
-sol = out.sol; V = sol.V; m = sol.m; c = sol.c; %#ok<NASGU>
+sol = out.sol; V = sol.V; m = sol.m; c = sol.c;
 save(fullfile(out_dir, [tag '.mat']), 'params', 'G_eur', 'V', 'm', 'c', 'mom', 'out');
 save_experiment_figures(sol, mom, sq, out_dir, tag, series_label, ttl);
 fprintf('saved results and figures to %s\n', out_dir);
@@ -57,8 +61,6 @@ end
 
 
 function s = format_eur(x)
-% Compact EUR label: 20000 -> "20k EUR", 200000 -> "200k EUR",
-% 1.5e6 -> "1.5M EUR", 400 -> "400 EUR". Derived, never hardcoded.
 if x >= 1e6
     s = sprintf('%gM EUR', x / 1e6);
 elseif x >= 1e3

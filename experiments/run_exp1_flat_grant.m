@@ -9,6 +9,9 @@ function out = run_exp1_flat_grant(params, G_eur)
 
 if nargin < 1 || isempty(params), params = params_default(); end
 if nargin < 2 || isempty(G_eur),  G_eur  = 1e5; end
+params.kfe_method = 'iterative';   % gmres + ilu; matches direct to machine
+                                   % precision (validated Na=300), faster + low
+                                   % memory on the costly surtax KFE sweeps.
 
 out_dir = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'results', 'step1');
 if ~exist(out_dir, 'dir'), mkdir(out_dir); end
