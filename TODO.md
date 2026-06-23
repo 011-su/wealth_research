@@ -135,6 +135,14 @@ up to the new contract is now the main roadmap; in rough dependency order:
   data. Expected for a one-asset model with a single safe rate; the Step 2
   blocks (heterogeneous returns, De Nardi bequests) are the planned fix —
   document how far they close the gap.
+- [ ] **Mean (aggregate) wealth declines with the grant — treat as an
+  ARTIFACT for now** (−0.4% at €20k to −2.7% at €200k, Step 2; see
+  `qualitative_results.md`). Sign/size not yet trustworthy: depends on the
+  uncalibrated `theta_b` and the PE / wealth-independent-returns structure.
+  Candidate mechanism (verify after calibration): transfers to high-MPC
+  young households raise consumption → lower steady-state stock (compounding
+  cancels with constant r). Re-examine once theta_b is calibrated and Step 2
+  returns / any GE are in.
 
 ## Validation (appendix §5.1, remaining)
 
