@@ -62,6 +62,6 @@ legend(labels, 'Location', 'northeast'); title('Wealth distribution (non-cumulat
 sgtitle('Grunderbe under Step 2 mortality — wealth distribution by grant size');
 exportgraphics(f, fullfile(out_dir, 'step2_comparison.png'), 'Resolution', 150);
 close(f);
-fprintf('saved figure: results/step1/step2_comparison.png\n');
+fprintf('saved figure: %s\n', fullfile(out_dir, 'step2_comparison.png'));
 
 end
