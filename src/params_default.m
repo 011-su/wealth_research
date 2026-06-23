@@ -81,6 +81,8 @@ params.y_sd_span = 3;        % y grid spans mu_y +/- span * stationary OU sd
 params.Delta_hjb = 1000;     % implicit time step in HJB iteration
 params.tol       = 1e-6;     % HJB convergence tolerance
 params.maxit_hjb = 100;      % expected to converge within ~100 iterations
+params.kfe_method = 'direct';% KFE solve: 'direct' (sparse LU) | 'iterative'
+                             % (bicgstab + ilu0; bounded memory, no kernel fill-in)
 
 %% Derived model-unit quantities (recompute via params_derive after
 %% overriding any *_eur input)
