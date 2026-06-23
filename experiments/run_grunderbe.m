@@ -19,7 +19,7 @@ params.kfe_method = 'iterative';   % gmres + ilu; matches direct to machine
                                    % memory on the costly KFE sweeps. Override
                                    % with params.kfe_method='direct' if needed.
 
-out_dir = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'results', 'step1');
+out_dir = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'results', params.mortality);
 if ~exist(out_dir, 'dir'), mkdir(out_dir); end
 
 % Labels and filenames derived from the grant (no hardcoded magnitudes)

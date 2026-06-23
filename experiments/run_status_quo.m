@@ -12,7 +12,7 @@ if nargin < 1, params = params_default(); end
 params.kfe_method = 'iterative';   % gmres + ilu; matches direct to machine
                                    % precision (validated Na=300), faster + low memory.
 
-out_dir = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'results', 'step1');
+out_dir = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'results', params.mortality);
 if ~exist(out_dir, 'dir'), mkdir(out_dir); end
 
 t0 = tic;

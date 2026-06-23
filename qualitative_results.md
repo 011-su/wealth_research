@@ -31,7 +31,7 @@ mean wealth **€478k**, top-10% 36.4%, top-1% 6.5%.
 | €100k | 36.8% | 16.4% | 0.500 | €469k |
 | €200k | 74.3% | 18.6% | 0.480 | €465k |
 
-Figure: `results/step1/step2_comparison.png` (wealth-over-age and the
+Figure: `results/step2/step2_comparison.png` (wealth-over-age and the
 non-cumulative wealth density, overlaid by grant size). Step 1 (constant
 mortality) funds the same grant at a *lower* surtax (€100k: 30.9%,
 €200k: 62.6%) — see Insight 4.

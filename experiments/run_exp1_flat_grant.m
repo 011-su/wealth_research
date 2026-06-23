@@ -13,7 +13,7 @@ params.kfe_method = 'iterative';   % gmres + ilu; matches direct to machine
                                    % precision (validated Na=300), faster + low
                                    % memory on the costly surtax KFE sweeps.
 
-out_dir = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'results', 'step1');
+out_dir = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'results', params.mortality);
 if ~exist(out_dir, 'dir'), mkdir(out_dir); end
 
 glabel = sprintf('%gk EUR', G_eur/1e3);

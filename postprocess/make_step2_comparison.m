@@ -11,7 +11,7 @@ function T = make_step2_comparison()
 %   (2) the non-cumulative wealth distribution (density g(a)).
 
 proj    = fileparts(fileparts(mfilename('fullpath')));
-out_dir = fullfile(proj, 'results', 'step1');
+out_dir = fullfile(proj, 'results', 'step2');
 files   = {'flatgrant_20k_step2.mat', 'flatgrant_100k_step2.mat', 'flatgrant_200k_step2.mat'};
 glabels = {'Grunderbe 20k', 'Grunderbe 100k', 'Grunderbe 200k'};
 
