@@ -3,6 +3,44 @@
 Working list of known gaps and decisions deferred. Numbers in brackets refer
 to the "Discrepancies vs. appendix" section in `CLAUDE.md`.
 
+## Spec gaps (2026-06-23 reread of the revised 3-D appendix/outline)
+
+The appendix was revised again: back to a **3-D state (a, z_p, h)** — the
+transitory shock is no longer a state but a **wealth-diffusion term**. The
+CLAUDE.md "Appendix overhaul" notes (written against the 4-D draft) are
+partly stale. Gaps, in priority order:
+
+- [ ] **VITAL: second-order wealth-diffusion term ½σ_a²V_aa** (App. §A.1.2–3,
+  §B.1). σ_a² = (σ_r·a)² + (w·ȳ·σ_ε)², with hard absorption at a_min and
+  σ_ε shut off in retirement. Governs precautionary savings and carries BOTH
+  transitory income risk (σ_ε²=0.18, FSS) and return risk (σ_r=0.15).
+  Currently hjb_solve is first-order (drift-only) in a — no V_aa term at
+  all. This is the main reason the top tail is too thin. Touches
+  operator_build (diffusion block, tridiagonal in a, state-dependent
+  coefficient) + hjb_solve + kfe (adjoint handles it automatically).
+- [ ] Income: Rouwenhorst z_p chain (θ_p=0.02, σ_z²≈0.40, matrix-log
+  generator) replacing the FD-diffusion y-grid (code: θ_y=0.05); add
+  life-cycle profile ψ(h) (FSS quartic, cache psi_h_coeffs.csv) and Jensen
+  normalization ȳ(z,h)=exp(ψ+z−σ_z²/2) (App. §A.1.1, A.1.5–6).
+- [ ] Heterogeneous returns r(a)=r0+κ·1{a≥a*}+… with r0=0.02, κ=0.02 above
+  P95, σ_r=0.15 (outline §3); code has constant r0=0.03, no return risk.
+- [ ] Full ErbStG tax: Steuerklasse-I 7-bracket schedule + δ rate-shift +
+  Verschonungsregeln β(a) + E_I 400k→200k reform (App. §D). Code: flat
+  tau0·max(b−F,0) + tau_add·b. Experiments should move from the flat
+  surtax to the δ-shift instrument.
+- [ ] Inheritance kernel: heir counts f_n(n|h) (Destatis fertility), split
+  b/n, childless pool → grant pool (App. §C, §G.3). Code: single heir.
+- [ ] Bequest motive: De Nardi (φ, â) + indirect inference on 3 moments
+  (BWR 0.01, wealth-share-65+ 0.40, below-exemption share 0.30; App. §F).
+  Code: 1-param warm glow, θ_b still placeholder 1.0.
+- [ ] Age/units alignment: model age 0–78 (bio 22–100), h_ret=43,
+  repl=0.55 replacing pension floor; I=500 wealth points, a_max=1000·ȳ.
+- [ ] Transitions (App. §E), Experiments 2/3/4 (§G.6), welfare (§H),
+  remaining §J tests (De Nardi replication, ErbSt revenue ≈ €13.3bn,
+  income diagnostics, aggregate-consistency invariant).
+- [ ] Refresh CLAUDE.md "Appendix overhaul / Discrepancies" against the
+  3-D appendix (stale references to z_ε state, Tauchen, 1.4M nodes).
+
 ## Spec overhaul (2026-06-18) — the appendix now describes a different model
 
 The user replaced `docs/implementation_appendix.md` with a much richer spec
