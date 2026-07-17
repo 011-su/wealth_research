@@ -84,11 +84,17 @@ bequest-motive calibration well-identified.)
 
 A €200k universal Grunderbe **is** fundable from bequests alone, but only with
 an **extreme** flat rate on *every* inheritance: ~63% (Step 1) to ~74%
-(Step 2). Under realistic mortality the rate is near the hard cap (surtax plus
-the status-quo schedule reaches a 100% top marginal estate rate at
-`tau_add` = 0.8), so **€200k is roughly the largest grant the broad-based
-bequest surtax can finance.** Smaller grants are comfortably feasible (€20k:
-7%, €100k: 37%).
+(Step 2). The exact frontier under Step 2 mortality: **the largest
+revenue-balanceable grant is G_max ≈ €215,000, at the surtax cap
+`tau_add` = 0.80** (the point where surtax plus status-quo schedule reach a
+100% top marginal estate rate; fixed point computed in `run_max_grant.m`).
+Smaller grants are comfortably feasible (€20k: 7%, €100k: 37%). At G_max the
+distribution reaches bottom-50% 18.7%, Gini 0.478 (from SQ 13.8%, 0.532).
+Figures `results/step2/density3d_pdf.png` / `density3d_logpdf.png` show the
+wealth-age density surfaces: the grant empties the young/low-wealth region
+below the entry-grant level (a ~10-order-of-magnitude log-density trench) and
+erects a density ridge at ~€215k for young households; the upper tail is
+essentially unchanged.
 
 ## Known artifacts / open issues (to address later)
 
